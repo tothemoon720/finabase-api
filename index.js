@@ -75,6 +75,29 @@ app.get("/api/losers", async (req, res) => {
   }
 });
 
+// Combined API endpoint for retrieving both GainersMA and LosersMA
+app.get("/api/marketActivity", async (req, res) => {
+  try {
+    // Fetch gainers data from MA table
+    const gainersResult = await client.query(
+      "SELECT * FROM MA WHERE real_change>=0 ORDER BY real_change DESC"
+    );
+    const gainers = gainersResult.rows;
+
+    // Fetch losers data from MA table
+    const losersResult = await client.query(
+      "SELECT * FROM MA WHERE real_change<0 ORDER BY real_change"
+    );
+    const losers = losersResult.rows;
+
+    // Send both gainers and losers data as JSON
+    res.json({ gainers, losers });
+  } catch (err) {
+    console.error("Error fetching market activity data:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 // Start the server
 const port = 3000; // Adjust the port number as needed
 app.listen(port, () => {
